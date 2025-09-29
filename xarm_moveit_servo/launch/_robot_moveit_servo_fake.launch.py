@@ -174,7 +174,7 @@ def launch_setup(context, *args, **kwargs):
         executable='spawner',
         output='screen',
         arguments=[
-            lite6_velocity_controller,
+            'lite6_velocity_controller',
             '--controller-manager', '{}/controller_manager'.format(ros_namespace)
         ],
     )
