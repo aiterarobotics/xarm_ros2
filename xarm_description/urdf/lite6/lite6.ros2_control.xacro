@@ -11,7 +11,7 @@
     joint4_lower_limit:=${-2.0*pi}  joint4_upper_limit:=${2.0*pi}
     joint5_lower_limit:=${-2.1642}  joint5_upper_limit:=${2.1642}
     joint6_lower_limit:=${-2.0*pi}  joint6_upper_limit:=${2.0*pi}">
-    <ros2_control name="${prefix}${ros2_control_plugin}" type="system">
+    <ros2_control name="lite6system" type="system">
       <hardware>
         <plugin>${ros2_control_plugin}</plugin>
         <xacro:if value="${ros2_control_plugin == 'uf_robot_hardware/UFRobotSystemHardware'}">

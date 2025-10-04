@@ -65,6 +65,7 @@ def launch_setup(context, *args, **kwargs):
     # 1: xbox360 wired
     # 2: xbox360 wireless
     # 3: spacemouse wireless
+    # 4: Dualshock
     joystick_type = LaunchConfiguration('joystick_type', default=1)
     ros_namespace = LaunchConfiguration('ros_namespace', default='').perform(context)
 
@@ -139,21 +140,21 @@ def launch_setup(context, *args, **kwargs):
     controllers = ['joint_state_broadcaster']
 
     # rviz_config_file = PathJoinSubstitution([FindPackageShare(moveit_config_package_name), 'rviz', 'moveit.rviz'])
-    rviz_config_file = PathJoinSubstitution([FindPackageShare('xarm_moveit_servo'), 'rviz', 'servo.rviz'])
-    rviz_node = Node(
-        package='rviz2',
-        executable='rviz2',
-        name='rviz2',
-        output='screen',
-        arguments=['-d', rviz_config_file],
-        parameters=[
-            robot_description_parameters,
-        ],
-        remappings=[
-            ('/tf', 'tf'),
-            ('/tf_static', 'tf_static'),
-        ]
-    )
+    # rviz_config_file = PathJoinSubstitution([FindPackageShare('xarm_moveit_servo'), 'rviz', 'servo.rviz'])
+    # rviz_node = Node(
+    #     package='rviz2',
+    #     executable='rviz2',
+    #     name='rviz2',
+    #     output='screen',
+    #     arguments=['-d', rviz_config_file],
+    #     parameters=[
+    #         robot_description_parameters,
+    #     ],
+    #     remappings=[
+    #         ('/tf', 'tf'),
+    #         ('/tf_static', 'tf_static'),
+    #     ]
+    # )
 
     # ros2 control launch
     # xarm_controller/launch/_ros2_control.launch.py
@@ -272,13 +273,7 @@ def launch_setup(context, *args, **kwargs):
     )
 
     return [
-        # RegisterEventHandler(
-        #     event_handler=OnProcessExit(
-        #         target_action=traj_controller_node,
-        #         on_exit=container,
-        #     )
-        # ),
-        rviz_node,
+        # rviz_node,
         joint_state_publisher_node,
         ros2_control_launch,
         container,

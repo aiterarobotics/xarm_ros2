@@ -65,6 +65,7 @@ def launch_setup(context, *args, **kwargs):
     # 1: xbox360 wired
     # 2: xbox360 wireless
     # 3: spacemouse wireless
+    # 4: Dualshock
     joystick_type = LaunchConfiguration('joystick_type', default=1)
     ros_namespace = LaunchConfiguration('ros_namespace', default='').perform(context)
 
@@ -135,6 +136,7 @@ def launch_setup(context, *args, **kwargs):
     servo_yaml['move_group_name'] = xarm_type
     xarm_traj_controller = '{}{}_traj_controller'.format(prefix.perform(context), xarm_type)
     servo_yaml['command_out_topic'] = '/{}/joint_trajectory'.format(xarm_traj_controller)
+
     servo_params = {"moveit_servo": servo_yaml}
     controllers = []
     if add_gripper.perform(context) in ('True', 'true') and robot_type.perform(context) != 'lite':
@@ -143,21 +145,21 @@ def launch_setup(context, *args, **kwargs):
         controllers.append('{}bio_gripper_traj_controller'.format(prefix.perform(context)))
 
     # rviz_config_file = PathJoinSubstitution([FindPackageShare(moveit_config_package_name), 'rviz', 'moveit.rviz'])
-    rviz_config_file = PathJoinSubstitution([FindPackageShare('xarm_moveit_servo'), 'rviz', 'servo.rviz'])
-    rviz_node = Node(
-        package='rviz2',
-        executable='rviz2',
-        name='rviz2',
-        output='screen',
-        arguments=['-d', rviz_config_file],
-        parameters=[
-            robot_description_parameters,
-        ],
-        remappings=[
-            ('/tf', 'tf'),
-            ('/tf_static', 'tf_static'),
-        ]
-    )
+    # rviz_config_file = PathJoinSubstitution([FindPackageShare('xarm_moveit_servo'), 'rviz', 'servo.rviz'])
+    # rviz_node = Node(
+    #     package='rviz2',
+    #     executable='rviz2',
+    #     name='rviz2',
+    #     output='screen',
+    #     arguments=['-d', rviz_config_file],
+    #     parameters=[
+    #         robot_description_parameters,
+    #     ],
+    #     remappings=[
+    #         ('/tf', 'tf'),
+    #         ('/tf_static', 'tf_static'),
+    #     ]
+    # )
 
     # ros2 control launch
     # xarm_controller/launch/_ros2_control.launch.py
@@ -174,10 +176,20 @@ def launch_setup(context, *args, **kwargs):
         executable='spawner',
         output='screen',
         arguments=[
-            'lite6_velocity_controller',
+            xarm_traj_controller,
             '--controller-manager', '{}/controller_manager'.format(ros_namespace)
         ],
     )
+
+    # velocity_controller_node = Node(
+    #     package='controller_manager',
+    #     executable='spawner',
+    #     output='screen',
+    #     arguments=[
+    #         'lite6_velocity_controller',
+    #         '--controller-manager', '{}/controller_manager'.format(ros_namespace)
+    #     ],
+    # )
 
     joint_state_broadcaster = Node(
         package='controller_manager',
@@ -258,57 +270,28 @@ def launch_setup(context, *args, **kwargs):
         output='screen',
     )
 
-    # robot_state_publisher_node = Node(
-    #     package='robot_state_publisher',
-    #     executable='robot_state_publisher',
-    #     output='screen',
-    #     parameters=[moveit_config.robot_description],
-    #     remappings=[
-    #         # ('/tf', 'tf'),
-    #         # ('/tf_static', 'tf_static'),
-    #     ]
-    # )
 
-    # servo_node = Node(
-    #     package="moveit_servo",
-    #     executable="servo_node",
-    #     name="servo_server",
+    # joystick_node = Node(
+    #     package="xarm_moveit_servo",
+    #     executable="xarm_joystick_input_node",
+    #     name="xarm_joystick_input_node",
     #     parameters=[
     #         servo_params,
-    #         robot_description_parameters,
+    #         {
+    #             'dof': dof, 
+    #             'ros_queue_size': 10,
+    #             'joystick_type': joystick_type,
+    #         },
     #     ],
     #     output="screen",
     # )
 
-    joystick_node = Node(
-        package="xarm_moveit_servo",
-        executable="xarm_joystick_input_node",
-        name="xarm_joystick_input_node",
-        parameters=[
-            servo_params,
-            {
-                'dof': dof, 
-                'ros_queue_size': 10,
-                'joystick_type': joystick_type,
-            },
-        ],
-        output="screen",
-    )
-
     return [
-        # robot_state_publisher_node,
-        # RegisterEventHandler(
-        #     event_handler=OnProcessExit(
-        #         target_action=traj_controller_node,
-        #         on_exit=container,
-        #     )
-        # ),
-        rviz_node,
+        #rviz_node,
         joint_state_broadcaster,
         ros2_control_launch,
-        # servo_node,
         container,
-        joystick_node,
+        #joystick_node,
         traj_controller_node,
     ] + controller_nodes
 
